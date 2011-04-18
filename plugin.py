@@ -51,26 +51,26 @@ set_serializer("bson")
 class LobbyClient(SocketRPCClient):
     def clientConnectionMade(self, factory):
         SocketRPCClient.clientConnectionMade(self, factory)
-        
+
         # Send the version command first.
         self.remote.transport.write(struct.pack("!8sI", "version", 4))
 
 class WZLobby(callbacks.Plugin):
     def __init__(self, irc):
         callbacks.Plugin.__init__(self, irc)
-        
+
         host = self.registryValue('lobby_address')
         port = self.registryValue('lobby_port')
-                
+
         self._client = LobbyClient()
-        self._connector = reactor.connectTCP(host, port, self._client)        
-        
+        self._connector = reactor.connectTCP(host, port, self._client)
+
         self._lCall = LoopingCall(self._update)
         self._lCall.start(int(self.registryValue('lobby_interval')))
-        
+
         self._lastnotified = set()
         self._games = []
-        
+
     def _update(self):
         def checkAndNotify(games):
             newKeys = set(["%s&%s&%s" % (game['description'], game['mapname'], game['hostplayer']) for game in games])
@@ -78,7 +78,7 @@ class WZLobby(callbacks.Plugin):
             if self._lastnotified ^ newKeys:
                 self._lastnotified = newKeys
                 self._games = games
-                
+
                 text = self._format_games(self._games)
                 # Iterator over all networks
                 for irc in world.ircs:
@@ -86,64 +86,64 @@ class WZLobby(callbacks.Plugin):
                     for channel in irc.state.channels:
                         if not self.registryValue('notify', channel):
                             continue
-                        
+
                         msg = ircmsgs.privmsg(channel, text)
                         if channel in irc.state.channels:
-                            irc.queueMsg(msg)                                
-            
+                            irc.queueMsg(msg)
+
         self._client.call("list").addCallback(checkAndNotify)
-        
+
     def games(self, irc, msg, args):
         irc.reply(self._format_games(self._games))
-        
+
     def notifications(self, irc, msg, args, channel, state):
         if not ircdb.checkCapability(msg.prefix, "admin"):
             irc.reply("Sorry, you'r not allowed to do so.")
             return
-        
+
         if state:
             self.setRegistryValue('notify', True, channel)
             irc.reply("Will send notifications to %s in the future" % channel)
         else:
             self.setRegistryValue('notify', False, channel)
             irc.reply("Will not send notifications to %s in the future" % channel)
-            
+
     notifications = wrap(notifications, ['inChannel', optional('boolean')])
-    
+
     def _format_games(self, games):
         if not games:
             return "No games in the lobby"
-            
+
         games = [self._format_game(game) for game in games]
 
         if len(games) == 1:
             return unicode("1 game: %s" % games[0]).encode('utf-8')
         else:
             return unicode("%i games: %s" % (len(games), ", ".join(games))).encode('utf-8')
-    
+
     def _format_game(self, game):
         private = ''
         if game["isPrivate"]:
             private = 'private, '
-        
+
         detail = ''
         if game["mapname"]:
             if game["mapname"][3:].lower() == "sk-":
-                detail = ' (%s by %s)' % (game["mapname"][3:], game["hostplayer"]) 
+                detail = ' (%s by %s)' % (game["mapname"][3:], game["hostplayer"])
             else:
-                detail = ' (%s by %s)' % (game["mapname"], game["hostplayer"]) 
-                
+                detail = ' (%s by %s)' % (game["mapname"], game["hostplayer"])
+
         return "\x02%s\x02%s [%i/%i] (%sversion: %s)" % (game["description"],
-                                               detail,                                                                  
-                                               game["currentPlayers"], 
+                                               detail,
+                                               game["currentPlayers"],
                                                game["maxPlayers"],
                                                private,
-                                               game["multiVer"])    
-                                               
+                                               game["multiVer"])
+
     def die(self):
         self._connector.disconnect()
         self._lCall.stop()
-    
+
 
 Class = WZLobby
 
