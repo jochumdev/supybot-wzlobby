@@ -75,15 +75,7 @@ class WZLobby(callbacks.Plugin):
         def checkAndNotify(games):
             newKeys = set(["%s&%s&%s" % (game['description'], game['mapname'], game['hostplayer']) for game in games])
 
-            changed = False            
-            if not self._games and games:
-                changed = True
-            elif self._games and not games:
-                changed = True
-            elif games and self._lastnotified ^ newKeys:
-                changed = True
-                                    
-            if changed:
+            if self._lastnotified ^ newKeys:
                 self._lastnotified = newKeys
                 self._games = games
                 
