@@ -17,15 +17,15 @@ Installation
 -----------
 * clone this repository into your plugins directory
 
-    cd <supybot>/plugins
+    cd supybot/plugins
     git git://github.com/pcdummy/supybot-wzlobby.git WZLobby
 
 * enable it.
 
-    irc: <yourbot>: load WZLobby
+    irc: yourbot: load WZLobby
 
 Configuration:
 -----------
 * enable/disable notification with:
 
-    <yourbot>: notifications <on|off>
+    yourbot: notifications <on|off>
