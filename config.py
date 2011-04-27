@@ -49,6 +49,9 @@ conf.registerGlobalValue(WZLobby, 'lobby_port',
     registry.PositiveInteger(9990, """The lobbyservers port"""))
 conf.registerGlobalValue(WZLobby, 'lobby_interval',
     registry.PositiveInteger(5, """Check the lobby every X seconds"""))
-
+conf.registerGlobalValue(WZLobby, 'lobby_user',
+    registry.String('', """Login user for the lobby.""", private=True))
+conf.registerGlobalValue(WZLobby, 'lobby_password',
+    registry.String('', """Login password for the lobby.""", private=True))
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:

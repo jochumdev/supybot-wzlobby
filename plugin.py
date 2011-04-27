@@ -49,11 +49,18 @@ from socketrpc.twisted_srpc import SocketRPCClient, set_serializer
 set_serializer("bson")
 
 class LobbyClient(SocketRPCClient):
+    def __init__(self, user, password):
+        self._user = user
+        self._password = password
+        
     def clientConnectionMade(self, factory):
         SocketRPCClient.clientConnectionMade(self, factory)
 
         # Send the version command first.
         self.remote.transport.write(struct.pack("!8sI", "version", 4))
+        
+        # now login
+        self.call("login", username=self._user, password=self._password)
 
 class WZLobby(callbacks.Plugin):
     def __init__(self, irc):
@@ -62,7 +69,7 @@ class WZLobby(callbacks.Plugin):
         host = self.registryValue('lobby_address')
         port = self.registryValue('lobby_port')
 
-        self._client = LobbyClient()
+        self._client = LobbyClient(self.registryValue('lobby_user'), self.registryValue('lobby_password'))
         self._connector = reactor.connectTCP(host, port, self._client)
 
         self._lCall = LoopingCall(self._update)
