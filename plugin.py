@@ -46,7 +46,7 @@ from twisted.internet.task import LoopingCall
 
 from socketrpc.twisted_srpc import SocketRPCClient, set_serializer
 
-set_serializer("bson")
+set_serializer("jsonlib")
 
 class LobbyClient(SocketRPCClient):
     def __init__(self, user, password):
